@@ -5,6 +5,9 @@ const makeRepositories = require('./middleware/repositories')
 const STORAGE_FILE_PATH = 'questions.json'
 const PORT = 3000
 
+const HTTP_NOT_FOUND = 404
+const HTTP_BAD_REQUEST = 400
+
 const app = express()
 
 app.use(urlencoded({ extended: true }))
@@ -26,7 +29,7 @@ app.get('/questions/:questionId', async (req, res) => {
     questionId
   )
   if (!question) {
-    res.status(404).json({ error: 'Not found' })
+    res.status(HTTP_NOT_FOUND).json({ error: 'Not found' })
     return
   }
   res.json(question)
@@ -35,7 +38,7 @@ app.get('/questions/:questionId', async (req, res) => {
 app.post('/questions', async (req, res) => {
   const { author, summary } = req.body
   if (!author || !summary) {
-    res.status(401).json({ error: 'Invalid author or summary' })
+    res.status(HTTP_BAD_REQUEST).json({ error: 'Invalid author or summary' })
     return
   }
   try {
@@ -45,7 +48,7 @@ app.post('/questions', async (req, res) => {
     })
     res.json(question)
   } catch (e) {
-    res.status(401).json({ error: e.message })
+    res.status(HTTP_BAD_REQUEST).json({ error: e.message })
   }
 })
 
@@ -53,7 +56,7 @@ app.get('/questions/:questionId/answers', async (req, res) => {
   const { questionId } = req.params
   const answers = await req.repositories.questionRepo.getAnswers(questionId)
   if (!answers) {
-    res.status(404).json({ error: 'Not found' })
+    res.status(HTTP_NOT_FOUND).json({ error: 'Not found' })
     return
   }
   res.json(answers)
@@ -63,7 +66,7 @@ app.post('/questions/:questionId/answers', async (req, res) => {
   const { questionId } = req.params
   const { author, summary } = req.body
   if (!author || !summary) {
-    res.status(401).json({ error: 'Invalid author or summary' })
+    res.status(HTTP_BAD_REQUEST).json({ error: 'Invalid author or summary' })
     return
   }
   try {
@@ -84,7 +87,7 @@ app.get('/questions/:questionId/answers/:answerId', async (req, res) => {
     answerId
   )
   if (!answer) {
-    res.status(404).json({ error: 'Not found' })
+    res.status(HTTP_NOT_FOUND).json({ error: 'Not found' })
     return
   }
   return res.json(answer)
