@@ -22,6 +22,9 @@ const makeQuestionRepository = fileName => {
   }
 
   const addQuestion = async questionDTO => {
+    if (!questionDTO.author || !questionDTO.summary) {
+      throw new Error('Invalid author or summary')
+    }
     const questions = await readFileAndParseQuestions()
     const question = {
       id: uuidv4(),
@@ -47,6 +50,9 @@ const makeQuestionRepository = fileName => {
   }
 
   const addAnswer = async (questionId, answerDTO) => {
+    if (!answerDTO.author || !answerDTO.summary) {
+      throw new Error('Invalid author or summary')
+    }
     const questions = await getQuestions()
     const question = questions.find(q => q.id === questionId)
     if (!question) {

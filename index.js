@@ -38,12 +38,15 @@ app.post('/questions', async (req, res) => {
     res.status(401).json({ error: 'Invalid author or summary' })
     return
   }
-  res.json(
-    await req.repositories.questionRepo.addQuestion({
+  try {
+    const question = await req.repositories.questionRepo.addQuestion({
       author,
       summary
     })
-  )
+    res.json(question)
+  } catch (e) {
+    res.status(401).json({ error: e.message })
+  }
 })
 
 app.get('/questions/:questionId/answers', async (req, res) => {
