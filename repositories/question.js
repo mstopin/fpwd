@@ -1,25 +1,72 @@
-const { readFile } = require('fs/promises')
+const { readFile, writeFile } = require('fs/promises')
+const { v4: uuidv4 } = require('uuid')
 
 const makeQuestionRepository = fileName => {
-  const getQuestions = async () => {
+  const readFileAndParseQuestions = async () => {
     const fileContent = await readFile(fileName, { encoding: 'utf-8' })
-    const questions = JSON.parse(fileContent)
-
-    return questions
+    return JSON.parse(fileContent)
   }
 
-  const getQuestionById = async questionId => {}
-  const addQuestion = async question => {}
-  const getAnswers = async questionId => {}
-  const getAnswer = async (questionId, answerId) => {}
-  const addAnswer = async (questionId, answer) => {}
+  const serializeQuestionsAndSaveFile = async questions => {
+    const serializedQuestions = JSON.stringify(questions)
+    await writeFile(fileName, serializedQuestions, { encoding: 'utf-8' })
+  }
+
+  const getQuestions = async () => {
+    return await readFileAndParseQuestions()
+  }
+
+  const getQuestionById = async questionId => {
+    const questions = await readFileAndParseQuestions()
+    return questions.find(q => q.id === questionId) ?? null
+  }
+
+  const addQuestion = async questionDTO => {
+    const questions = await readFileAndParseQuestions()
+    const question = {
+      id: uuidv4(),
+      answers: [],
+      ...questionDTO
+    }
+    questions.push(question)
+    await serializeQuestionsAndSaveFile(questions)
+    return question
+  }
+
+  const getAnswers = async questionId => {
+    const question = await getQuestionById(questionId)
+    return question ? question.answers : null
+  }
+
+  const getAnswerById = async (questionId, answerId) => {
+    const answers = await getAnswers(questionId)
+    if (!answers) {
+      return null
+    }
+    return answers.find(a => a.id === answerId) ?? null
+  }
+
+  const addAnswer = async (questionId, answerDTO) => {
+    const questions = await getQuestions()
+    const question = questions.find(q => q.id === questionId)
+    if (!question) {
+      throw new Error('Invalid questionId')
+    }
+    const answer = {
+      id: uuidv4(),
+      ...answerDTO
+    }
+    question.answers.push(answer)
+    await serializeQuestionsAndSaveFile(questions)
+    return answer
+  }
 
   return {
     getQuestions,
     getQuestionById,
     addQuestion,
     getAnswers,
-    getAnswer,
+    getAnswerById,
     addAnswer
   }
 }
